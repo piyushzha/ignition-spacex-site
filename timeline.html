@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline — IGNITION</title>
+<meta name="description" content="Six SpaceX flights that changed what a rocket could be — from Falcon 1 to Starship.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">IGN<span>ITION</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">Mission</a>
+    <a href="timeline.html" class="active">Timeline</a>
+    <a href="stats.html">Stats</a>
+    <a href="debug-log.html">Debug Log</a>
+    <a href="rockets-3d.html" class="cta-link">Fleet in 3D</a>
+  </div>
+</nav>
+
+<div style="height:110px"></div>
+
+<!-- ============ TIMELINE (Gallery) ============ -->
+<section id="timeline">
+  <div class="section-head">
+    <div class="gallery-head-flex">
+      <div class="gallery-head-text">
+        <span class="eyebrow">01 — Flight History</span>
+        <h2>Six flights. One trajectory.</h2>
+        <p>Each milestone pushed reusability further — from surviving orbit at all,
+           to landing upright, to flying the same hardware again. Drag the model
+           on the right to see Starship in 3D right here.</p>
+      </div>
+      <div class="mini3d-card">
+        <canvas id="mini3d"></canvas>
+        <div class="mini3d-tag"><span class="mini3d-dot"></span> STARSHIP — LIVE 3D</div>
+        <a href="rockets-3d.html" class="mini3d-link">Open full fleet viewer →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline">
+
+    <div class="t-row">
+      <div class="t-year">2008</div>
+      <div class="t-body">
+        <div class="t-head-flex">
+          <div class="t-thumb"><img src="images/falcon1.jpg" alt="Falcon 1 launch"></div>
+          <h3>Falcon 1 Reaches Orbit</h3>
+        </div>
+        <p>The first privately developed liquid-fuel rocket to reach Earth orbit —
+           on the fourth attempt, with the company nearly out of money.</p>
+      </div>
+      <div class="t-spec">
+        <div>HEIGHT — 22.25 m</div>
+        <div>ENGINES — 1 × Merlin 1C</div>
+        <div>PAYLOAD — 670 kg → LEO</div>
+      </div>
+    </div>
+
+    <div class="t-row">
+      <div class="t-year">2010</div>
+      <div class="t-body">
+        <div class="t-head-flex">
+          <div class="t-thumb"><img src="images/falcon9.jpg" alt="Falcon 9 debut launch"></div>
+          <h3>Falcon 9 Debuts</h3>
+        </div>
+        <p>A larger, more powerful rocket designed from the start with reusability
+           in mind — the workhorse the fleet still flies today.</p>
+      </div>
+      <div class="t-spec">
+        <div>HEIGHT — 70 m</div>
+        <div>ENGINES — 9 × Merlin 1D</div>
+        <div>PAYLOAD — 22,800 kg → LEO</div>
+      </div>
+    </div>
+
+    <div class="t-row">
+      <div class="t-year">2015</div>
+      <div class="t-body">
+        <div class="t-head-flex">
+          <div class="t-thumb"><img src="images/landing-2015.jpg" alt="First orbital-class booster landing"></div>
+          <h3>First Orbital-Class Booster Landing</h3>
+        </div>
+        <p>A Falcon 9 first stage lands upright after launch on December 21, 2015 —
+           proof that rocket boosters didn't have to be single-use.</p>
+      </div>
+      <div class="t-spec">
+        <div>LANDING — 4 fold-out legs</div>
+        <div>SITE — Cape Canaveral, FL</div>
+        <div>PAYLOAD — 11 Orbcomm OG2 sats</div>
+      </div>
+    </div>
+
+    <div class="t-row">
+      <div class="t-year">2018</div>
+      <div class="t-body">
+        <div class="t-head-flex">
+          <div class="t-thumb"><img src="images/falcon-heavy.jpg" alt="Falcon Heavy first flight"></div>
+          <h3>Falcon Heavy's First Flight</h3>
+        </div>
+        <p>Three Falcon 9 boosters strapped together — at the time, the most
+           powerful operational rocket in the world.</p>
+      </div>
+      <div class="t-spec">
+        <div>ENGINES — 27 × Merlin 1D</div>
+        <div>THRUST — 5,082,000 lbf</div>
+        <div>PAYLOAD — 63,800 kg → LEO</div>
+      </div>
+    </div>
+
+    <div class="t-row">
+      <div class="t-year">2020</div>
+      <div class="t-body">
+        <div class="t-head-flex">
+          <div class="t-thumb"><img src="images/timeline-all.jpg" alt="Crew Dragon carries astronauts"></div>
+          <h3>Crew Dragon Carries Astronauts</h3>
+        </div>
+        <p>The first crewed orbital launch from American soil since the Space
+           Shuttle retired in 2011.</p>
+      </div>
+      <div class="t-spec">
+        <div>CREW — up to 7 astronauts</div>
+        <div>LAUNCH — Kennedy Space Center</div>
+        <div>VEHICLE — Falcon 9 + Dragon</div>
+      </div>
+    </div>
+
+    <div class="t-row">
+      <div class="t-year">2023</div>
+      <div class="t-body">
+        <div class="t-head-flex">
+          <div class="t-thumb"><img src="images/starship.jpg" alt="Starship flight testing"></div>
+          <h3>Starship Flight Testing</h3>
+        </div>
+        <p>SpaceX's fully reusable transportation system for Earth orbit, the
+           Moon, Mars, and beyond — flight testing began in 2023.</p>
+      </div>
+      <div class="t-spec">
+        <div>HEIGHT — 121 m stacked</div>
+        <div>ENGINES — 33 + 3 × Raptor 2</div>
+        <div>PAYLOAD — 150,000+ kg → LEO</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ CTA — INTERACTIVE ELEMENT ============ -->
+<section>
+  <div class="cta">
+    <div class="cta-text">
+      <span class="eyebrow">Interactive Element</span>
+      <h2>Rotate the entire fleet.</h2>
+      <p>Every rocket on this page, rebuilt as a real 3D model to true
+         height-to-diameter ratio. Drag to rotate, scroll to zoom, switch
+         eras on the fly.</p>
+    </div>
+    <a class="cta-btn" href="rockets-3d.html">Open the 3D Viewer →</a>
+  </div>
+</section>
+
+<div class="page-next">
+  <a href="stats.html">
+    <span class="eyebrow-mini">Next</span>
+    By the Numbers →
+  </a>
+</div>
+
+<footer>
+  <div>URBANA SCHOOL OF SCIENCE — <b>TECH CLUB</b></div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">Mission</a>
+    <a href="stats.html">Stats</a>
+    <a href="rockets-3d.html">Fleet 3D</a>
+    <a href="debug-log.html">Debug Log</a>
+  </div>
+</footer>
+
+<script src="mini3d.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

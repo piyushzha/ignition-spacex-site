@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet // 3D Rotational View</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#05070c;
+    --panel:#0b0f18;
+    --steel:#c9d0d8;
+    --steel-dim:#7b8494;
+    --ignition:#ff5a1f;
+    --cryo:#5fb8ff;
+    --line:#232b3c;
+    --accent:#ff5a1f;
+    --accent-2:#5fb8ff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    height:100%;
+    background:var(--void);
+    color:var(--steel);
+    font-family:'IBM Plex Mono', monospace;
+    overflow:hidden;
+  }
+  #stage{position:fixed; inset:0; z-index:1;}
+  #nebula{position:fixed; inset:0; z-index:0;}
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:10;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:26px 40px;
+    pointer-events:none;
+  }
+  .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.18em;
+    color:var(--steel);
+    pointer-events:auto;
+  }
+  .brand span{
+    background:linear-gradient(90deg, #ff5a1f, #ff2fb0, #7c5cff, #22d3ee);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .crumb{
+    font-size:11px;
+    letter-spacing:.12em;
+    color:var(--steel-dim);
+    text-transform:uppercase;
+    pointer-events:auto;
+  }
+  .crumb a:hover{color:#fff;}
+
+  #title-block{
+    position:fixed; left:40px; top:100px; z-index:10;
+    max-width:360px;
+    pointer-events:none;
+  }
+  #title-block h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,46px);
+    line-height:1.0;
+    letter-spacing:-.01em;
+    color:#fff;
+  }
+  #title-block h1 em{
+    font-style:normal;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    transition:background .5s ease;
+  }
+  #title-block p{
+    margin-top:16px;
+    font-size:12px;
+    line-height:1.7;
+    color:var(--steel-dim);
+    letter-spacing:.02em;
+  }
+
+  #fleet-select{
+    position:fixed; left:40px; bottom:40px; z-index:10;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .fleet-btn{
+    all:unset;
+    cursor:pointer;
+    display:flex; align-items:center; gap:12px;
+    padding:11px 6px;
+    border-bottom:1px solid var(--line);
+    width:250px;
+    font-family:'IBM Plex Mono', monospace;
+    transition:padding-left .25s ease, background .25s ease;
+    border-radius:3px;
+  }
+  .fleet-btn .swatch{
+    width:9px; height:9px; border-radius:50%; flex-shrink:0;
+    box-shadow:0 0 0 3px transparent;
+    transition:box-shadow .25s ease;
+  }
+  .fleet-btn .yr{
+    font-size:11px; color:var(--steel-dim); width:32px; flex-shrink:0;
+  }
+  .fleet-btn .nm{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:15px; font-weight:500; color:var(--steel);
+    transition:color .25s ease;
+  }
+  .fleet-btn:hover{padding-left:12px; background:rgba(255,255,255,.03);}
+  .fleet-btn.active{padding-left:12px; background:rgba(255,255,255,.05);}
+  .fleet-btn.active .nm{color:#fff;}
+  .fleet-btn.active .yr{color:var(--accent);}
+  .fleet-btn.active .swatch{box-shadow:0 0 0 3px rgba(255,255,255,.12), 0 0 14px 2px var(--accent);}
+
+  #specs{
+    position:fixed; right:40px; top:100px; z-index:10;
+    text-align:right;
+    pointer-events:none;
+  }
+  #specs .row{margin-bottom:15px;}
+  #specs .k{
+    font-size:10px; letter-spacing:.14em; color:var(--steel-dim); text-transform:uppercase;
+  }
+  #specs .v{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:20px; color:#fff; font-weight:500;
+  }
+  #specs .bar{
+    margin-top:6px; height:2px; width:100%; background:var(--line); border-radius:2px; overflow:hidden;
+  }
+  #specs .bar i{
+    display:block; height:100%; width:100%;
+    background:linear-gradient(90deg, var(--accent-2), var(--accent));
+  }
+
+  #telemetry{
+    position:fixed; left:0; right:0; bottom:0; z-index:10;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 40px;
+    border-top:1px solid var(--line);
+    font-size:11px; letter-spacing:.08em; color:var(--steel-dim);
+    pointer-events:none;
+    background:linear-gradient(to top, rgba(5,7,12,.7), transparent);
+  }
+  #telemetry b{color:var(--accent); font-weight:600; transition:color .5s ease;}
+  #deg{color:var(--accent-2); font-variant-numeric:tabular-nums; transition:color .5s ease;}
+
+  #hint{
+    position:fixed; right:40px; bottom:40px; z-index:10;
+    font-size:11px; color:var(--steel-dim); letter-spacing:.06em;
+    display:flex; align-items:center; gap:8px;
+    pointer-events:none;
+  }
+  #hint .dot{width:6px;height:6px;border-radius:50%;background:var(--accent); animation:pulse 1.6s ease infinite; transition:background .5s ease;}
+  @keyframes pulse{0%,100%{opacity:1} 50%{opacity:.25}}
+
+  @media (max-width: 760px){
+    #specs{display:none;}
+    #title-block{max-width:220px;}
+    .fleet-btn{width:200px;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+<canvas id="nebula"></canvas>
+
+<header>
+  <a href="index.html" class="brand">IGN<span>ITION</span></a>
+  <div class="crumb"><a href="index.html" style="color:inherit; text-decoration:none">Home</a> — <a href="timeline.html" style="color:inherit; text-decoration:none">Timeline</a> — <b style="color:#fff">Fleet 3D</b></div>
+</header>
+
+<div id="title-block">
+  <h1>ROTATE THE<br><em>ENTIRE FLEET.</em></h1>
+  <p>Every SpaceX-era vehicle, modeled to true height-to-diameter ratio. Drag to rotate. Select an era below to swap vehicles — each one lights the scene in its own color.</p>
+</div>
+
+<div id="fleet-select"></div>
+
+<div id="specs"></div>
+
+<div id="telemetry">
+  <div>ROTATION <span id="deg">000°</span></div>
+  <div id="hint"><span class="dot"></span> DRAG TO ROTATE — SCROLL TO ZOOM</div>
+  <div><b>●</b> LIVE MODEL</div>
+</div>
+
+<script>
+const FLEET = [
+  { yr:'2008', name:'Falcon 1', color:0xffb020, height:22.25, diameter:1.68, engines:'1 × Merlin 1C', payload:'670 kg → LEO', fins:0, grid:false, boosters:1 },
+  { yr:'2010', name:'Falcon 9', color:0x22d3ee, height:70, diameter:3.7, engines:'9 × Merlin 1D', payload:'22,800 kg → LEO', fins:4, grid:false, boosters:1 },
+  { yr:'2015', name:'Falcon 9 (Landed)', color:0x34d399, height:70, diameter:3.7, engines:'9 × Merlin 1D', payload:'22,800 kg → LEO', fins:4, grid:true, boosters:1 },
+  { yr:'2018', name:'Falcon Heavy', color:0xa78bfa, height:70, diameter:12.2, engines:'27 × Merlin 1D', payload:'63,800 kg → LEO', fins:4, grid:true, boosters:3 },
+  { yr:'2023', name:'Starship', color:0xff5a1f, height:121, diameter:9, engines:'33+3 × Raptor 2', payload:'150,000+ kg → LEO', fins:0, grid:false, boosters:1, starship:true },
+];
+let current = 4;
+
+const canvas = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth/window.innerHeight, 0.1, 500);
+camera.position.set(0, 2, 26);
+
+const key = new THREE.DirectionalLight(0xffffff, 1.15);
+key.position.set(6,10,8); scene.add(key);
+
+const rimA = new THREE.DirectionalLight(0x5fb8ff, 0.8);
+rimA.position.set(-8,4,-6); scene.add(rimA);
+const accentLight = new THREE.PointLight(0xff5a1f, 2.2, 26);
+accentLight.position.set(0,-4,6); scene.add(accentLight);
+const accentLight2 = new THREE.PointLight(0xff5a1f, 1.1, 22);
+accentLight2.position.set(6,6,-4); scene.add(accentLight2);
+
+const fill = new THREE.AmbientLight(0x1b2436, 1.15); scene.add(fill);
+
+const rocketGroup = new THREE.Group();
+scene.add(rocketGroup);
+
+const steelMat  = new THREE.MeshStandardMaterial({ color:0xe3e7ec, metalness:0.8, roughness:0.28 });
+const darkMat   = new THREE.MeshStandardMaterial({ color:0x1a1e26, metalness:0.6, roughness:0.5 });
+let finMat      = new THREE.MeshStandardMaterial({ color:0xa78bfa, metalness:0.55, roughness:0.35, side:THREE.DoubleSide });
+let nozzleMat   = new THREE.MeshStandardMaterial({ color:0x2a2e35, metalness:0.9, roughness:0.2, emissive:0xff5a1f, emissiveIntensity:0.35 });
+let ringMat     = new THREE.MeshStandardMaterial({ color:0x2a2e35, metalness:0.7, roughness:0.4, emissive:0xff5a1f, emissiveIntensity:0.5 });
+
+function clearGroup(g){ while(g.children.length) g.remove(g.children[0]); }
+
+function buildRocket(spec){
+  clearGroup(rocketGroup);
+  const targetH = 12;
+  const scale = targetH / spec.height;
+  const bodyR = (spec.diameter/2) * scale;
+  const bodyH = spec.height * scale * 0.86;
+
+  function coreStack(offsetX){
+    const grp = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyR, bodyR, bodyH, 32), spec.starship? darkMat : steelMat);
+    body.position.y = bodyH/2;
+    grp.add(body);
+
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(bodyR, bodyH*0.16, 32), steelMat);
+    nose.position.y = bodyH + (bodyH*0.16)/2;
+    grp.add(nose);
+
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(bodyR*1.03, bodyR*1.03, bodyH*0.025, 32), ringMat);
+    ring.position.y = bodyH*0.6;
+    grp.add(ring);
+
+    const nCount = spec.starship ? 9 : (spec.engines.includes('27') ? 9 : (spec.engines.includes('9') ? 9 : 1));
+    const nozR = bodyR*0.14;
+    for(let i=0;i<nCount;i++){
+      const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(nozR*0.8, nozR, bodyH*0.05, 12), nozzleMat);
+      if(nCount===1){ nozzle.position.set(0, -bodyH*0.025, 0); }
+      else{
+        const ring2 = Math.min(i,7);
+        const ang = (ring2/8)*Math.PI*2;
+        const rad = bodyR*0.55;
+        nozzle.position.set(Math.cos(ang)*rad, -bodyH*0.025, Math.sin(ang)*rad);
+      }
+      grp.add(nozzle);
+    }
+
+    if(spec.grid){
+      for(let i=0;i<4;i++){
+        const gfin = new THREE.Mesh(new THREE.BoxGeometry(bodyR*0.9, bodyR*0.55, 0.04), finMat);
+        const ang = (i/4)*Math.PI*2 + Math.PI/4;
+        gfin.position.set(Math.cos(ang)*bodyR*1.05, bodyH*0.86, Math.sin(ang)*bodyR*1.05);
+        gfin.rotation.y = ang;
+        grp.add(gfin);
+      }
+    }
+    for(let i=0;i<4;i++){
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,bodyR*1.7,6), darkMat);
+      const ang = (i/4)*Math.PI*2 + Math.PI/8;
+      leg.position.set(Math.cos(ang)*bodyR*0.9, bodyR*0.7, Math.sin(ang)*bodyR*0.9);
+      leg.rotation.z = Math.cos(ang)*0.9;
+      leg.rotation.x = Math.sin(ang)*0.9;
+      grp.add(leg);
+    }
+    if(spec.starship){
+      const flapGeo = new THREE.BoxGeometry(bodyR*1.1, bodyH*0.22, 0.05);
+      const f1 = new THREE.Mesh(flapGeo, finMat); f1.position.set(bodyR*1.0, bodyH*0.82, 0); f1.rotation.z=0.35; grp.add(f1);
+      const f2 = new THREE.Mesh(flapGeo, finMat); f2.position.set(-bodyR*1.0, bodyH*0.82, 0); f2.rotation.z=-0.35; grp.add(f2);
+      const f3 = new THREE.Mesh(flapGeo.clone(), finMat); f3.scale.set(1,0.6,1); f3.position.set(bodyR*0.95, bodyH*0.08, 0); f3.rotation.z=0.4; grp.add(f3);
+      const f4 = new THREE.Mesh(flapGeo.clone(), finMat); f4.scale.set(1,0.6,1); f4.position.set(-bodyR*0.95, bodyH*0.08, 0); f4.rotation.z=-0.4; grp.add(f4);
+    }
+    if(spec.fins>0 && !spec.starship){
+      for(let i=0;i<spec.fins;i++){
+        const fin = new THREE.Mesh(new THREE.ConeGeometry(bodyR*0.5, bodyR*1.1, 3), finMat);
+        const ang = (i/spec.fins)*Math.PI*2;
+        fin.position.set(Math.cos(ang)*bodyR*1.02, bodyR*0.5, Math.sin(ang)*bodyR*1.02);
+        fin.rotation.x = Math.PI/2;
+        fin.rotation.z = ang;
+        grp.add(fin);
+      }
+    }
+    grp.position.x = offsetX;
+    return grp;
+  }
+
+  if(spec.boosters===3){
+    rocketGroup.add(coreStack(0));
+    const side = bodyR*2.15;
+    const b2 = coreStack(side); b2.scale.set(0.94,0.94,0.94); rocketGroup.add(b2);
+    const b3 = coreStack(-side); b3.scale.set(0.94,0.94,0.94); rocketGroup.add(b3);
+  } else {
+    rocketGroup.add(coreStack(0));
+  }
+  rocketGroup.position.y = -targetH*0.42;
+}
+
+const SECONDARY = 0x5fb8ff;
+function hex(n){ return '#' + n.toString(16).padStart(6,'0'); }
+
+function applyEraColor(spec){
+  const c = spec.color;
+  accentLight.color.setHex(c);
+  accentLight2.color.setHex(c);
+  nozzleMat.emissive.setHex(c);
+  ringMat.emissive.setHex(c);
+  finMat.color.setHex(c);
+  document.documentElement.style.setProperty('--accent', hex(c));
+  document.documentElement.style.setProperty('--accent-2', hex(SECONDARY));
+}
+
+const nebulaCanvas = document.getElementById('nebula');
+const nctx = nebulaCanvas.getContext('2d');
+let nebulaT = 0;
+function resizeNebula(){ nebulaCanvas.width = window.innerWidth; nebulaCanvas.height = window.innerHeight; }
+function drawNebula(){
+  const w = nebulaCanvas.width, h = nebulaCanvas.height;
+  nctx.fillStyle = '#05070c';
+  nctx.fillRect(0,0,w,h);
+
+  const blobs = [
+    { x:0.2+Math.sin(nebulaT*0.15)*0.05, y:0.25, r:0.55, c:'rgba(124,92,255,0.16)' },
+    { x:0.8+Math.cos(nebulaT*0.12)*0.05, y:0.2,  r:0.5,  c:'rgba(255,47,176,0.11)' },
+    { x:0.75, y:0.8+Math.sin(nebulaT*0.1)*0.04,  r:0.55, c:'rgba(95,184,255,0.13)' },
+    { x:0.15, y:0.85, r:0.5, c:'rgba(255,90,31,0.10)' },
+  ];
+  blobs.forEach(b=>{
+    const g = nctx.createRadialGradient(w*b.x,h*b.y,0, w*b.x,h*b.y, Math.max(w,h)*b.r);
+    g.addColorStop(0, b.c);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    nctx.fillStyle = g;
+    nctx.fillRect(0,0,w,h);
+  });
+
+  nctx.save();
+  for(let i=0;i<180;i++){
+    const x = (i*97 % w), y = (i*53 % h);
+    const r = (i%3===0) ? 1.4 : 0.7;
+    nctx.globalAlpha = 0.25 + ((i*37)%100)/140;
+    nctx.fillStyle = '#dfe9ff';
+    nctx.beginPath(); nctx.arc(x,y,r,0,Math.PI*2); nctx.fill();
+  }
+  nctx.restore();
+}
+function nebulaLoop(){
+  nebulaT += 0.01;
+  drawNebula();
+  requestAnimationFrame(nebulaLoop);
+}
+resizeNebula(); nebulaLoop();
+
+let dragging=false, lastX=0, lastY=0;
+let rotY = 0.5, rotX = 0.08;
+let autoSpin = true;
+
+canvas.addEventListener('pointerdown', e=>{ dragging=true; autoSpin=false; lastX=e.clientX; lastY=e.clientY; });
+window.addEventListener('pointerup', ()=> dragging=false);
+window.addEventListener('pointermove', e=>{
+  if(!dragging) return;
+  const dx = e.clientX-lastX, dy = e.clientY-lastY;
+  rotY += dx*0.008;
+  rotX = Math.max(-0.5, Math.min(0.5, rotX + dy*0.005));
+  lastX=e.clientX; lastY=e.clientY;
+});
+canvas.addEventListener('wheel', e=>{
+  camera.position.z = Math.max(14, Math.min(40, camera.position.z + e.deltaY*0.02));
+}, {passive:true});
+
+const selectEl = document.getElementById('fleet-select');
+const specsEl = document.getElementById('specs');
+
+function renderSelector(){
+  selectEl.innerHTML='';
+  FLEET.forEach((f,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'fleet-btn' + (i===current?' active':'');
+    btn.innerHTML = `<span class="swatch" style="background:${hex(f.color)}"></span><span class="yr">${f.yr}</span><span class="nm">${f.name}</span>`;
+    btn.onclick = ()=> selectFleet(i);
+    selectEl.appendChild(btn);
+  });
+}
+function renderSpecs(){
+  const f = FLEET[current];
+  specsEl.innerHTML = `
+    <div class="row"><div class="k">Height</div><div class="v">${f.height} m</div><div class="bar"><i></i></div></div>
+    <div class="row"><div class="k">Diameter</div><div class="v">${f.diameter} m</div></div>
+    <div class="row"><div class="k">Propulsion</div><div class="v">${f.engines}</div></div>
+    <div class="row"><div class="k">Payload</div><div class="v">${f.payload}</div></div>
+  `;
+}
+function selectFleet(i){
+  current = i;
+  buildRocket(FLEET[i]);
+  applyEraColor(FLEET[i]);
+  renderSelector();
+  renderSpecs();
+}
+
+applyEraColor(FLEET[current]);
+renderSelector();
+renderSpecs();
+buildRocket(FLEET[current]);
+
+const degEl = document.getElementById('deg');
+function animate(){
+  requestAnimationFrame(animate);
+  if(autoSpin) rotY += 0.0022;
+  rocketGroup.rotation.y = rotY;
+  rocketGroup.rotation.x = rotX*0.3;
+  camera.lookAt(0,0,0);
+  let deg = Math.round(((rotY % (Math.PI*2)) / (Math.PI*2)) * 360);
+  if(deg<0) deg += 360;
+  degEl.textContent = String(deg).padStart(3,'0') + '°';
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  resizeNebula();
+});
+</script>
+</body>
+</html>

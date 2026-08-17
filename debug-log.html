@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debug Log — IGNITION</title>
+<meta name="description" content="Week 2 debugging reflection — what broke, what I tried, what fixed it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">IGN<span>ITION</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">Mission</a>
+    <a href="timeline.html">Timeline</a>
+    <a href="stats.html">Stats</a>
+    <a href="debug-log.html" class="active">Debug Log</a>
+    <a href="rockets-3d.html" class="cta-link">Fleet in 3D</a>
+  </div>
+</nav>
+
+<div style="height:110px"></div>
+
+<!-- ============ WEEK 2 — DEBUGGING LOG ============ -->
+<section id="debug-log">
+  <div class="section-head">
+    <span class="eyebrow">04 — Week 2 Reflection</span>
+    <h2>Debugging log.</h2>
+    <p>Required for the JavaScript + Polish deliverable — what broke while
+       building the interactive feature, what I tried, what actually fixed it.</p>
+  </div>
+  <ol class="log-list">
+    <li>
+      <b>Broke:</b> the 3D rocket viewer rendered a black screen — only the
+      starfield background was visible, no rocket.
+      <b>Tried:</b> assumed the Three.js model wasn't building — added console
+      logs to check the geometry was actually created (it was).
+      <b>Fixed:</b> the starfield `&lt;canvas&gt;` had no `z-index`, so being
+      later in the HTML it stacked on top of the 3D canvas and hid it
+      completely. Setting `z-index:0` on the starfield and `z-index:1` on the
+      3D canvas fixed it — a stacking-order bug, not a Three.js bug.
+    </li>
+    <li>
+      <b>Broke:</b> the animated stat counters fired the moment the page
+      loaded instead of when scrolled into view.
+      <b>Tried:</b> calling the count-up function directly on page load.
+      <b>Fixed:</b> wrapped the counters in an `IntersectionObserver` and only
+      started the animation once the stats section actually entered the
+      viewport, then disconnected the observer so it only runs once.
+    </li>
+    <li>
+      <b>Broke:</b> the drag-to-rotate on the mini 3D widget felt too
+      sensitive — a small mouse move spun the rocket a full turn.
+      <b>Tried:</b> lowering the rotation multiplier from 0.03 down in small
+      steps while testing by hand.
+      <b>Fixed:</b> settled on a much smaller multiplier (`0.01`) applied to
+      the pointer's `clientX` delta each frame — rotation now roughly matches
+      how far the cursor actually moves.
+    </li>
+  </ol>
+</section>
+
+<div class="page-next">
+  <a href="index.html">
+    <span class="eyebrow-mini">Back to start</span>
+    Home →
+  </a>
+</div>
+
+<footer>
+  <div>URBANA SCHOOL OF SCIENCE — <b>TECH CLUB</b></div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">Mission</a>
+    <a href="timeline.html">Timeline</a>
+    <a href="stats.html">Stats</a>
+    <a href="rockets-3d.html">Fleet 3D</a>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
